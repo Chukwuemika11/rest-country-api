@@ -1,0 +1,46 @@
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+
+const SearchAndRegion = () => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['rest', searchQuery], // Include search query in query key
+        queryFn: () =>
+            fetch(`https://restcountries.com/v3.1/name/${searchQuery}`)
+                .then((res) => res.json()),
+        enabled: searchQuery.trim() !== '', // Enable query when search query is not empty
+        staleTime: 1000 // Set a low stale time to refetch quickly
+    });
+
+    const handleSearchInputChange = (e) => {
+        setSearchQuery(e.target.value);
+    };
+
+    if (isLoading) return <div>Loading...</div>;
+    if (isError) return <div>Error fetching data</div>;
+
+    return (
+        <div className='searchFilter'>
+            <div className='input'>
+                <input
+                    type="text"
+                    placeholder='Search for a country'
+                    value={searchQuery}
+                    onChange={handleSearchInputChange}
+                />
+            </div>
+            {data && data.map((country) => (
+                <div key={country.cca3} className='country'>
+                    <img src={country.flags.svg} alt={`Flag of ${country.name.common}`} />
+                    <h2>{country.name.common}</h2>
+                    <p>Official Name: {country.name.official}</p>
+                    <p>Population: {country.population}</p>
+                    <p>Region: {country.region}</p>
+                    <p>Capital: {country.capital}</p>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+export default SearchAndRegion;
